@@ -11,6 +11,7 @@
 #include <Effects.h>
 #include <CommonStates.h>
 #include <SimpleMath.h>
+#include <Model.h>
 
 
 
@@ -99,4 +100,14 @@ private:
 	float m_backBufferWidth, m_backBufferHeight;
 
 	std::unique_ptr<DebugCamera> m_camera;
+	
+	// エフェクトファクトリー
+	std::unique_ptr<DirectX::EffectFactory> m_factory;
+
+	std::unique_ptr<DirectX::EffectFactory> m_ballfactory;
+
+	// モデル
+	std::unique_ptr<DirectX::Model> m_model;
+
+	std::unique_ptr<DirectX::Model> m_ballmodel;
 };

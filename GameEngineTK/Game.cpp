@@ -90,6 +90,28 @@ void Game::Initialize(HWND window, int width, int height)
 	// デバックカメラの生成
 	m_camera = std::make_unique<DebugCamera>(m_outputWidth,m_outputHeight);
 
+	// エフェクトファクトリーの生成
+	m_factory = std::make_unique<EffectFactory>(m_d3dDevice.Get());
+
+	// テクスチャの読み込み
+	m_factory->SetDirectory(L"Resources");
+
+	// モデルの読み込み
+	m_model = Model::CreateFromCMO(m_d3dDevice.Get(),
+		L"Resources/ground.cmo",
+		*m_factory);
+
+	// エフェクトファクトリーの生成
+	m_ballfactory = std::make_unique<EffectFactory>(m_d3dDevice.Get());
+
+	// テクスチャの読み込み
+	m_ballfactory->SetDirectory(L"Resources");
+
+	// モデルの読み込み
+	m_ballmodel = Model::CreateFromCMO(m_d3dDevice.Get(),
+		L"Resources/skydome.cmo",
+		*m_ballfactory);
+
 }
 
 // Executes the basic game loop.
@@ -159,7 +181,7 @@ void Game::Render()
 	/*m_view = Matrix::CreateLookAt(Vector3(0.f, 2.f, 50.f),
 		Vector3(0,0,0), Vector3(0,1,0));*/
 	m_proj = Matrix::CreatePerspectiveFieldOfView(XM_PI / 4.f,
-		float(m_backBufferWidth) / float(m_backBufferHeight), 0.1f, 100.f);
+		float(m_backBufferWidth) / float(m_backBufferHeight), 0.1f, 1000.f);
 
 	m_effect->SetView(m_view);
 	m_effect->SetProjection(m_proj);
@@ -184,6 +206,13 @@ void Game::Render()
 	m_effect->Apply(m_d3dContext.Get());
 
 	m_d3dContext->IASetInputLayout(m_inputLayout.Get());
+
+
+	m_ballmodel->Draw(m_d3dContext.Get(), *m_states, m_world, m_view, m_proj);
+
+	// 地面を描画
+	m_model->Draw(m_d3dContext.Get(),*m_states,m_world,m_view,m_proj);
+
 
 	m_batch->Begin();
 
