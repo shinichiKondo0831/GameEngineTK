@@ -98,7 +98,7 @@ void Game::Initialize(HWND window, int width, int height)
 
 	// モデルの読み込み
 	m_model = Model::CreateFromCMO(m_d3dDevice.Get(),
-		L"Resources/ground.cmo",
+		L"Resources/ground200.cmo",
 		*m_factory);
 
 	// エフェクトファクトリーの生成
@@ -111,6 +111,22 @@ void Game::Initialize(HWND window, int width, int height)
 	m_ballmodel = Model::CreateFromCMO(m_d3dDevice.Get(),
 		L"Resources/skydome.cmo",
 		*m_ballfactory);
+
+
+	
+	
+	// エフェクトファクトリーの生成
+	m_ballfac = std::make_unique<EffectFactory>(m_d3dDevice.Get());
+
+	// テクスチャの読み込み
+	m_ballfac->SetDirectory(L"Resources");
+
+	// モデルの読み込み
+		m_ball = Model::CreateFromCMO(m_d3dDevice.Get(),
+			L"Resources/ball.cmo",
+			*m_ballfac);
+	
+		m_AngleBall = 0.0f;
 
 }
 
@@ -140,6 +156,64 @@ void Game::Update(DX::StepTimer const& timer)
 
 	// デバックカメラからview行列を取得
 	m_view = m_camera->GetCameraMatrix();
+
+	m_AngleBall += 0.01f;
+	
+
+	// 球のワールド行列を計算
+	// スケーリング行列
+	Matrix scalemat = Matrix::CreateScale(0.1f);
+
+	
+	// 内側
+	for (int i = 0; i < 10; i++)
+	{
+		// ロール
+		Matrix rotmatz = Matrix::CreateRotationZ(XMConvertToRadians(0.0f));
+
+		// ピッチ(仰角)
+		Matrix rotmatx = Matrix::CreateRotationX(XMConvertToRadians(0.0f));
+
+		// ヨー(方位角)
+		Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians((360.0f / 10.0f) * i) + m_AngleBall);
+
+		// 回転行列の合成
+		Matrix rotmat = rotmatz * rotmatx * rotmaty;
+
+		// 平行移動
+		Matrix transmat = Matrix::CreateTranslation(20, 0, 0);
+
+		m_worldBall[i] =/* scalemat * */transmat * rotmat ;
+
+	}
+
+	// 外側
+	for (int i = 10; i < 20; i++)
+	{
+		// ロール
+		Matrix rotmatz = Matrix::CreateRotationZ(XMConvertToRadians(0.0f));
+
+		// ピッチ(仰角)
+		Matrix rotmatx = Matrix::CreateRotationX(XMConvertToRadians(0.0f));
+
+		// ヨー(方位角)
+		Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians((360.0f / 10.0f) * i) - m_AngleBall);
+
+		// 回転行列の合成
+		Matrix rotmat = rotmatz * rotmatx * rotmaty;
+
+		// 平行移動
+		Matrix transmat = Matrix::CreateTranslation(40, 0, 0);
+
+		m_worldBall[i] =/* scalemat * */transmat * rotmat;
+
+	}
+
+	
+
+	
+
+
 }
 
 // Draws the scene.
@@ -211,8 +285,16 @@ void Game::Render()
 	m_ballmodel->Draw(m_d3dContext.Get(), *m_states, m_world, m_view, m_proj);
 
 	// 地面を描画
-	m_model->Draw(m_d3dContext.Get(),*m_states,m_world,m_view,m_proj);
+	m_model->Draw(m_d3dContext.Get(),*m_states,Matrix::Identity,m_view,m_proj);
 
+	for (int i = 0; i < 20; i++)
+	{
+		m_ball->Draw(m_d3dContext.Get(),
+			*m_states,
+			m_worldBall[i],
+			m_view,
+			m_proj);
+	}
 
 	m_batch->Begin();
 

@@ -106,8 +106,18 @@ private:
 
 	std::unique_ptr<DirectX::EffectFactory> m_ballfactory;
 
+	std::unique_ptr<DirectX::EffectFactory> m_ballfac;
+
 	// モデル
 	std::unique_ptr<DirectX::Model> m_model;
 
 	std::unique_ptr<DirectX::Model> m_ballmodel;
+
+	std::unique_ptr<DirectX::Model> m_ball;
+
+	// 球のワールド行列
+	DirectX::SimpleMath::Matrix m_worldBall[20];
+
+	// 角度
+	float m_AngleBall;
 };
