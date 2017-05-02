@@ -128,6 +128,17 @@ void Game::Initialize(HWND window, int width, int height)
 	
 		m_AngleBall = 0.0f;
 
+
+		// エフェクトファクトリーの生成
+		m_Teapotfac = std::make_unique<EffectFactory>(m_d3dDevice.Get());
+
+		// テクスチャの読み込み
+		m_Teapotfac->SetDirectory(L"Resources");
+
+		// モデルの読み込み
+		m_Teapod = Model::CreateFromCMO(m_d3dDevice.Get(),
+			L"Resources/Tiecup.cmo",
+			*m_Teapotfac);
 }
 
 // Executes the basic game loop.
@@ -162,7 +173,7 @@ void Game::Update(DX::StepTimer const& timer)
 
 	// 球のワールド行列を計算
 	// スケーリング行列
-	Matrix scalemat = Matrix::CreateScale(0.1f);
+	Matrix scalemat = Matrix::CreateScale(0.01f);
 
 	
 	// 内側
@@ -208,9 +219,26 @@ void Game::Update(DX::StepTimer const& timer)
 		m_worldBall[i] =/* scalemat * */transmat * rotmat;
 
 	}
+	//float val = (sinf(36.0f) + 1.0f)*50.0f;
 
+	//float cval = (cosf(36.0f) + 1.0f) * 50.0f;
+	//// ロール
+	//Matrix rotmatz = Matrix::CreateRotationZ(XMConvertToRadians(val));
+
+	//// ピッチ(仰角)
+	//Matrix rotmatx = Matrix::CreateRotationX(XMConvertToRadians(cval) + m_AngleBall);
+
+	//// ヨー(方位角)
+	//Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians(0.0f));
+
+	//// 回転行列の合成
+	//Matrix rotmat = rotmatz * rotmatx * rotmaty;
+
+	//// 平行移動
+	//Matrix transmat = Matrix::CreateTranslation(0, 0, 0);
+
+	//m_worldBall = scalemat * transmat * rotmat;
 	
-
 	
 
 
@@ -229,21 +257,21 @@ void Game::Render()
 
     // TODO: Add your rendering code here.
 
-	// 頂点インデックス
-	uint16_t indexs[] =
-	{
-		0,1,2,
-		2,1,3
-	};
+	//// 頂点インデックス
+	//uint16_t indexs[] =
+	//{
+	//	0,1,2,
+	//	2,1,3
+	//};
 
-	// 頂点データ配列
-	VertexPositionNormal vertices[] = 
-	{
-		{ Vector3(-1.0f, 1.0f,0.0f),Vector3(0.0f,0.0f,1.0f) },
-		{ Vector3(-1.0f,-1.0f,0.0f),Vector3(0.0f,0.0f,1.0f) },
-		{ Vector3( 1.0f, 1.0f,0.0f),Vector3(0.0f,0.0f,1.0f) },
-		{ Vector3( 1.0f,-1.0f,0.0f),Vector3(0.0f,0.0f,1.0f) }
-	};
+	//// 頂点データ配列
+	//VertexPositionNormal vertices[] = 
+	//{
+	//	{ Vector3(-1.0f, 1.0f,0.0f),Vector3(0.0f,0.0f,1.0f) },
+	//	{ Vector3(-1.0f,-1.0f,0.0f),Vector3(0.0f,0.0f,1.0f) },
+	//	{ Vector3( 1.0f, 1.0f,0.0f),Vector3(0.0f,0.0f,1.0f) },
+	//	{ Vector3( 1.0f,-1.0f,0.0f),Vector3(0.0f,0.0f,1.0f) }
+	//};
 
 
 	// カメラ設定
@@ -262,13 +290,13 @@ void Game::Render()
 
 
 
-	// 線分
-	m_basicEffect->Apply(m_d3dContext.Get());
-	m_d3dContext->IASetInputLayout(m_inputLayout.Get());
+	//// 線分
+	//m_basicEffect->Apply(m_d3dContext.Get());
+	//m_d3dContext->IASetInputLayout(m_inputLayout.Get());
 
-	m_primitiveBatch->Begin();
-	m_primitiveBatch->DrawLine(VertexPositionColor(Vector3(-1.0f,1.0f,0.0f),Color(0.0f, 0.0f, 0.0f)), VertexPositionColor(Vector3(800.0f, 600.0f, 0.0f), Color(255.0f, 255.0f, 255.0f)));
-	m_primitiveBatch->End();
+	//m_primitiveBatch->Begin();
+	//m_primitiveBatch->DrawLine(VertexPositionColor(Vector3(-1.0f,1.0f,0.0f),Color(0.0f, 0.0f, 0.0f)), VertexPositionColor(Vector3(800.0f, 600.0f, 0.0f), Color(255.0f, 255.0f, 255.0f)));
+	//m_primitiveBatch->End();
 
 
 	// 三角形
@@ -287,6 +315,7 @@ void Game::Render()
 	// 地面を描画
 	m_model->Draw(m_d3dContext.Get(),*m_states,Matrix::Identity,m_view,m_proj);
 
+	// ボールの描画
 	for (int i = 0; i < 20; i++)
 	{
 		m_ball->Draw(m_d3dContext.Get(),
@@ -296,19 +325,25 @@ void Game::Render()
 			m_proj);
 	}
 
-	m_batch->Begin();
+	/*m_Teapod->Draw(m_d3dContext.Get(),
+		*m_states,
+		m_worldBall,
+		m_view,
+		m_proj);*/
 
-	/*VertexPositionColor v1(Vector3(0.f, 0.5f, 0.5f), Colors::Aqua);
-	VertexPositionColor v2(Vector3(0.5f, -0.5f, 0.5f), Colors::Yellow);
-	VertexPositionColor v3(Vector3(-0.5f, -0.5f, 0.5f), Colors::Yellow);*/
+	//m_batch->Begin();
 
-	//m_batch->DrawTriangle(v1, v2, v3);
+	///*VertexPositionColor v1(Vector3(0.f, 0.5f, 0.5f), Colors::Aqua);
+	//VertexPositionColor v2(Vector3(0.5f, -0.5f, 0.5f), Colors::Yellow);
+	//VertexPositionColor v3(Vector3(-0.5f, -0.5f, 0.5f), Colors::Yellow);*/
+
+	////m_batch->DrawTriangle(v1, v2, v3);
 
 
-	// 四角形
-	m_batch->DrawIndexed(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, indexs, 6, vertices, 4);
+	//// 四角形
+	//m_batch->DrawIndexed(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, indexs, 6, vertices, 4);
 
-	m_batch->End();
+	//m_batch->End();
 
 
 

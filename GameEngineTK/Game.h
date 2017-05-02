@@ -108,6 +108,8 @@ private:
 
 	std::unique_ptr<DirectX::EffectFactory> m_ballfac;
 
+	std::unique_ptr<DirectX::EffectFactory> m_Teapotfac;
+
 	// モデル
 	std::unique_ptr<DirectX::Model> m_model;
 
@@ -115,9 +117,14 @@ private:
 
 	std::unique_ptr<DirectX::Model> m_ball;
 
+	std::unique_ptr<DirectX::Model> m_Teapod;
+
 	// 球のワールド行列
 	DirectX::SimpleMath::Matrix m_worldBall[20];
 
 	// 角度
 	float m_AngleBall;
+
+	// ティーポッド
+	
 };
