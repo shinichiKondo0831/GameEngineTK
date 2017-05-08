@@ -4,6 +4,8 @@
 
 #include "pch.h"
 #include "Game.h"
+#include <time.h>
+
 
 extern void ExitGame();
 
@@ -29,20 +31,20 @@ Game::Game() :
 // Initialize the Direct3D resources required to run.
 void Game::Initialize(HWND window, int width, int height)
 {
-    m_window = window;
-    m_outputWidth = std::max(width, 1);
-    m_outputHeight = std::max(height, 1);
+	m_window = window;
+	m_outputWidth = std::max(width, 1);
+	m_outputHeight = std::max(height, 1);
 
-    CreateDevice();
+	CreateDevice();
 
-    CreateResources();
+	CreateResources();
 
-    // TODO: Change the timer settings if you want something other than the default variable timestep mode.
-    // e.g. for 60 FPS fixed timestep update logic, call:
-    /*
-    m_timer.SetFixedTimeStep(true);
-    m_timer.SetTargetElapsedSeconds(1.0 / 60);
-    */
+	// TODO: Change the timer settings if you want something other than the default variable timestep mode.
+	// e.g. for 60 FPS fixed timestep update logic, call:
+	/*
+	m_timer.SetFixedTimeStep(true);
+	m_timer.SetTargetElapsedSeconds(1.0 / 60);
+	*/
 
 
 
@@ -88,7 +90,7 @@ void Game::Initialize(HWND window, int width, int height)
 
 
 	// デバックカメラの生成
-	m_camera = std::make_unique<DebugCamera>(m_outputWidth,m_outputHeight);
+	m_camera = std::make_unique<DebugCamera>(m_outputWidth, m_outputHeight);
 
 	// エフェクトファクトリーの生成
 	m_factory = std::make_unique<EffectFactory>(m_d3dDevice.Get());
@@ -113,8 +115,8 @@ void Game::Initialize(HWND window, int width, int height)
 		*m_ballfactory);
 
 
-	
-	
+
+
 	// エフェクトファクトリーの生成
 	m_ballfac = std::make_unique<EffectFactory>(m_d3dDevice.Get());
 
@@ -122,23 +124,44 @@ void Game::Initialize(HWND window, int width, int height)
 	m_ballfac->SetDirectory(L"Resources");
 
 	// モデルの読み込み
-		m_ball = Model::CreateFromCMO(m_d3dDevice.Get(),
-			L"Resources/ball.cmo",
-			*m_ballfac);
-	
-		m_AngleBall = 0.0f;
+	m_ball = Model::CreateFromCMO(m_d3dDevice.Get(),
+		L"Resources/ball.cmo",
+		*m_ballfac);
+
+	m_AngleBall = 0.0f;
 
 
-		// エフェクトファクトリーの生成
-		m_Teapotfac = std::make_unique<EffectFactory>(m_d3dDevice.Get());
+	// エフェクトファクトリーの生成
+	m_Teapotfac = std::make_unique<EffectFactory>(m_d3dDevice.Get());
 
-		// テクスチャの読み込み
-		m_Teapotfac->SetDirectory(L"Resources");
+	// テクスチャの読み込み
+	m_Teapotfac->SetDirectory(L"Resources");
 
-		// モデルの読み込み
-		m_Teapod = Model::CreateFromCMO(m_d3dDevice.Get(),
-			L"Resources/Tiecup.cmo",
-			*m_Teapotfac);
+	// モデルの読み込み
+	m_Teapod = Model::CreateFromCMO(m_d3dDevice.Get(),
+		L"Resources/Tiecup.cmo",
+		*m_Teapotfac);
+
+	// エフェクトファクトリーの生成
+	m_objectfactory = std::make_unique<EffectFactory>(m_d3dDevice.Get());
+
+	// テクスチャの読み込み
+	m_objectfactory->SetDirectory(L"Resources");
+
+	// モデルの読み込み
+	m_object = Model::CreateFromCMO(m_d3dDevice.Get(),
+		L"Resources/Object.cmo",
+		*m_objectfactory);
+
+	srand((unsigned int)time(NULL));
+
+	for (int i = 0; i < 20; i++)
+	{
+		m_num[i] = rand() % 500 + 1;
+		m_n[i] = rand() % 40 + 1;
+
+	}
+
 }
 
 // Executes the basic game loop.
@@ -168,57 +191,76 @@ void Game::Update(DX::StepTimer const& timer)
 	// デバックカメラからview行列を取得
 	m_view = m_camera->GetCameraMatrix();
 
-	m_AngleBall += 0.01f;
+	m_AngleBall += 0.1f;
 	
 
 	// 球のワールド行列を計算
 	// スケーリング行列
-	Matrix scalemat = Matrix::CreateScale(0.01f);
+	Matrix scalemat = Matrix::CreateScale(0.1f);
 
-	
-	// 内側
-	for (int i = 0; i < 10; i++)
+
+	for (int i = 0; i < 20; i++)
 	{
-		// ロール
-		Matrix rotmatz = Matrix::CreateRotationZ(XMConvertToRadians(0.0f));
+			// ロール
+			Matrix rotmatz = Matrix::CreateRotationZ(XMConvertToRadians((360.0f / 10.0f) * i) + m_AngleBall);
 
-		// ピッチ(仰角)
-		Matrix rotmatx = Matrix::CreateRotationX(XMConvertToRadians(0.0f));
+			// ピッチ(仰角)
+			Matrix rotmatx = Matrix::CreateRotationX(XMConvertToRadians(0.0f));
 
-		// ヨー(方位角)
-		Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians((360.0f / 10.0f) * i) + m_AngleBall);
+			// ヨー(方位角)
+			Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians(0.0f));
 
-		// 回転行列の合成
-		Matrix rotmat = rotmatz * rotmatx * rotmaty;
+			// 回転行列の合成
+			Matrix rotmat = rotmatz * rotmatx * rotmaty;
 
-		// 平行移動
-		Matrix transmat = Matrix::CreateTranslation(20, 0, 0);
+			// 平行移動
+			Matrix transmat = Matrix::CreateTranslation(m_n[i], 0, 0);
 
-		m_worldBall[i] =/* scalemat * */transmat * rotmat ;
-
+			m_worldBall[i] = scalemat * transmat * rotmat;
 	}
+	//// 内側
+	//for (int i = 0; i < 10; i++)
+	//{
+	//	// ロール
+	//	Matrix rotmatz = Matrix::CreateRotationZ(XMConvertToRadians(0.0f));
 
-	// 外側
-	for (int i = 10; i < 20; i++)
-	{
-		// ロール
-		Matrix rotmatz = Matrix::CreateRotationZ(XMConvertToRadians(0.0f));
+	//	// ピッチ(仰角)
+	//	Matrix rotmatx = Matrix::CreateRotationX(XMConvertToRadians(0.0f));
 
-		// ピッチ(仰角)
-		Matrix rotmatx = Matrix::CreateRotationX(XMConvertToRadians(0.0f));
+	//	// ヨー(方位角)
+	//	Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians((360.0f / 10.0f) * i) + m_AngleBall);
 
-		// ヨー(方位角)
-		Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians((360.0f / 10.0f) * i) - m_AngleBall);
+	//	// 回転行列の合成
+	//	Matrix rotmat = rotmatz * rotmatx * rotmaty;
 
-		// 回転行列の合成
-		Matrix rotmat = rotmatz * rotmatx * rotmaty;
+	//	// 平行移動
+	//	Matrix transmat = Matrix::CreateTranslation(20, 0, 0);
 
-		// 平行移動
-		Matrix transmat = Matrix::CreateTranslation(40, 0, 0);
+	//	m_worldBall[i] =/* scalemat * */transmat * rotmat ;
 
-		m_worldBall[i] =/* scalemat * */transmat * rotmat;
+	//}
 
-	}
+	//// 外側
+	//for (int i = 10; i < 20; i++)
+	//{
+	//	// ロール
+	//	Matrix rotmatz = Matrix::CreateRotationZ(XMConvertToRadians(0.0f));
+
+	//	// ピッチ(仰角)
+	//	Matrix rotmatx = Matrix::CreateRotationX(XMConvertToRadians(0.0f));
+
+	//	// ヨー(方位角)
+	//	Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians((360.0f / 10.0f) * i) - m_AngleBall);
+
+	//	// 回転行列の合成
+	//	Matrix rotmat = rotmatz * rotmatx * rotmaty;
+
+	//	// 平行移動
+	//	Matrix transmat = Matrix::CreateTranslation(40, 0, 0);
+
+	//	m_worldBall[i] =/* scalemat * */transmat * rotmat;
+
+	//}
 	//float val = (sinf(36.0f) + 1.0f)*50.0f;
 
 	//float cval = (cosf(36.0f) + 1.0f) * 50.0f;
@@ -315,10 +357,20 @@ void Game::Render()
 	// 地面を描画
 	m_model->Draw(m_d3dContext.Get(),*m_states,Matrix::Identity,m_view,m_proj);
 
+	//// ボールの描画
+	//for (int i = 0; i < 20; i++)
+	//{
+	//	m_ball->Draw(m_d3dContext.Get(),
+	//		*m_states,
+	//		m_worldBall[i],
+	//		m_view,
+	//		m_proj);
+	//}
+
 	// ボールの描画
 	for (int i = 0; i < 20; i++)
 	{
-		m_ball->Draw(m_d3dContext.Get(),
+		m_object->Draw(m_d3dContext.Get(),
 			*m_states,
 			m_worldBall[i],
 			m_view,
