@@ -162,6 +162,19 @@ void Game::Initialize(HWND window, int width, int height)
 
 	}
 
+
+
+	// エフェクトファクトリーの生成
+	m_robofactory = std::make_unique<EffectFactory>(m_d3dDevice.Get());
+
+	// テクスチャの読み込み
+	m_robofactory->SetDirectory(L"Resources");
+
+	// モデルの読み込み
+	m_robo = Model::CreateFromCMO(m_d3dDevice.Get(),
+		L"Resources/head.cmo",
+		*m_robofactory);
+
 }
 
 // Executes the basic game loop.
@@ -199,25 +212,25 @@ void Game::Update(DX::StepTimer const& timer)
 	Matrix scalemat = Matrix::CreateScale(0.1f);
 
 
-	for (int i = 0; i < 20; i++)
-	{
-			// ロール
-			Matrix rotmatz = Matrix::CreateRotationZ(XMConvertToRadians((360.0f / 10.0f) * i) + m_AngleBall);
+	//for (int i = 0; i < 20; i++)
+	//{
+	//		// ロール
+	//		Matrix rotmatz = Matrix::CreateRotationZ(XMConvertToRadians((360.0f / 10.0f) * i) + m_AngleBall);
 
-			// ピッチ(仰角)
-			Matrix rotmatx = Matrix::CreateRotationX(XMConvertToRadians(0.0f));
+	//		// ピッチ(仰角)
+	//		Matrix rotmatx = Matrix::CreateRotationX(XMConvertToRadians(0.0f));
 
-			// ヨー(方位角)
-			Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians(0.0f));
+	//		// ヨー(方位角)
+	//		Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians(0.0f));
 
-			// 回転行列の合成
-			Matrix rotmat = rotmatz * rotmatx * rotmaty;
+	//		// 回転行列の合成
+	//		Matrix rotmat = rotmatz * rotmatx * rotmaty;
 
-			// 平行移動
-			Matrix transmat = Matrix::CreateTranslation(m_n[i], 0, 0);
+	//		// 平行移動
+	//		Matrix transmat = Matrix::CreateTranslation(m_n[i], 0, 0);
 
-			m_worldBall[i] = scalemat * transmat * rotmat;
-	}
+	//		m_worldBall[i] = scalemat * transmat * rotmat;
+	//}
 	//// 内側
 	//for (int i = 0; i < 10; i++)
 	//{
@@ -357,6 +370,13 @@ void Game::Render()
 	// 地面を描画
 	m_model->Draw(m_d3dContext.Get(),*m_states,Matrix::Identity,m_view,m_proj);
 
+
+	m_robo->Draw(m_d3dContext.Get(),
+		*m_states,
+		m_world,
+		m_view,
+		m_proj);
+
 	//// ボールの描画
 	//for (int i = 0; i < 20; i++)
 	//{
@@ -367,15 +387,15 @@ void Game::Render()
 	//		m_proj);
 	//}
 
-	// ボールの描画
-	for (int i = 0; i < 20; i++)
-	{
-		m_object->Draw(m_d3dContext.Get(),
-			*m_states,
-			m_worldBall[i],
-			m_view,
-			m_proj);
-	}
+	//// オブジェクトの描画
+	//for (int i = 0; i < 20; i++)
+	//{
+	//	m_object->Draw(m_d3dContext.Get(),
+	//		*m_states,
+	//		m_worldBall[i],
+	//		m_view,
+	//		m_proj);
+	//}
 
 	/*m_Teapod->Draw(m_d3dContext.Get(),
 		*m_states,

@@ -112,6 +112,8 @@ private:
 
 	std::unique_ptr<DirectX::EffectFactory> m_objectfactory;
 
+	std::unique_ptr<DirectX::EffectFactory> m_robofactory;
+
 	// モデル
 	std::unique_ptr<DirectX::Model> m_model;
 
@@ -122,6 +124,8 @@ private:
 	std::unique_ptr<DirectX::Model> m_Teapod;
 
 	std::unique_ptr<DirectX::Model> m_object;
+
+	std::unique_ptr<DirectX::Model> m_robo;
 
 	// 球のワールド行列
 	DirectX::SimpleMath::Matrix m_worldBall[20];
