@@ -12,6 +12,8 @@
 #include <CommonStates.h>
 #include <SimpleMath.h>
 #include <Model.h>
+#include <Keyboard.h>
+#include "FollowCamera.h"
 
 
 
@@ -137,6 +139,21 @@ private:
 
 	float m_n[20];
 
-	// ティーポッド
-	
+	// キーボード
+	std::unique_ptr<DirectX::Keyboard> m_keyboard;
+
+	float tank_y;
+
+	// 自機の回転角
+	float tank_angle;
+
+	// 自機の座標側の移動
+	DirectX::SimpleMath::Vector3 tank_pos;
+
+	// 自機のワールド行列
+	DirectX::SimpleMath::Matrix tank_world;
+
+	std::unique_ptr<FollowCamera> m_Camera;
+
+
 };

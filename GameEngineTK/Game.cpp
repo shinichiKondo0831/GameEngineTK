@@ -175,6 +175,18 @@ void Game::Initialize(HWND window, int width, int height)
 		L"Resources/head.cmo",
 		*m_robofactory);
 
+
+	// キーボード変数の初期化
+	m_keyboard = std::make_unique<Keyboard>();
+
+	tank_y = 0.0f;
+	tank_angle = 0.0f;
+
+	// カメラの生成
+	m_Camera = std::make_unique<FollowCamera>(m_backBufferWidth, m_backBufferHeight);
+	m_Camera->SetKeyboard(m_keyboard.get());
+	
+
 }
 
 // Executes the basic game loop.
@@ -198,105 +210,90 @@ void Game::Update(DX::StepTimer const& timer)
 
 	//m_camera->GetCameraMatrix();
 
-	// デバックカメラの更新
-	m_camera->Update();
 
-	// デバックカメラからview行列を取得
-	m_view = m_camera->GetCameraMatrix();
+	
 
-	m_AngleBall += 0.1f;
+	
 	
 
 	// 球のワールド行列を計算
 	// スケーリング行列
 	Matrix scalemat = Matrix::CreateScale(0.1f);
 
+	// キーボードの状態を取得
+	auto kb = m_keyboard->GetState();
 
-	//for (int i = 0; i < 20; i++)
-	//{
-	//		// ロール
-	//		Matrix rotmatz = Matrix::CreateRotationZ(XMConvertToRadians((360.0f / 10.0f) * i) + m_AngleBall);
 
-	//		// ピッチ(仰角)
-	//		Matrix rotmatx = Matrix::CreateRotationX(XMConvertToRadians(0.0f));
+	// 回転処理
+	if (kb.A)
+	{
+		// 自機の座標を移動
+		tank_y += 0.03f;
+	}
+	else if (kb.D)
+	{
+		// 自機の座標を移動
+		tank_y -= 0.03f;
+	}
 
-	//		// ヨー(方位角)
-	//		Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians(0.0f));
+	// 移動処理
+	if (kb.W)
+	{
+		// 移動ベクトル
+		Vector3 moveV(0, 0, 0.1f);
+		Matrix rotmat = Matrix::CreateRotationY(tank_y);
+		// 今の角度に合わせて移動ベクトルを回転させる
+		moveV = Vector3::TransformNormal(moveV, rotmat);
 
-	//		// 回転行列の合成
-	//		Matrix rotmat = rotmatz * rotmatx * rotmaty;
+		// 自機の座標を移動
+		tank_pos += moveV;
 
-	//		// 平行移動
-	//		Matrix transmat = Matrix::CreateTranslation(m_n[i], 0, 0);
 
-	//		m_worldBall[i] = scalemat * transmat * rotmat;
-	//}
-	//// 内側
-	//for (int i = 0; i < 10; i++)
-	//{
-	//	// ロール
-	//	Matrix rotmatz = Matrix::CreateRotationZ(XMConvertToRadians(0.0f));
 
-	//	// ピッチ(仰角)
-	//	Matrix rotmatx = Matrix::CreateRotationX(XMConvertToRadians(0.0f));
+		/*m_Camera->SetEyePos(tank_pos);
 
-	//	// ヨー(方位角)
-	//	Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians((360.0f / 10.0f) * i) + m_AngleBall);
+		m_Camera->SetRefPos(Vector3(0, 0, -100));*/
 
-	//	// 回転行列の合成
-	//	Matrix rotmat = rotmatz * rotmatx * rotmaty;
-
-	//	// 平行移動
-	//	Matrix transmat = Matrix::CreateTranslation(20, 0, 0);
-
-	//	m_worldBall[i] =/* scalemat * */transmat * rotmat ;
-
-	//}
-
-	//// 外側
-	//for (int i = 10; i < 20; i++)
-	//{
-	//	// ロール
-	//	Matrix rotmatz = Matrix::CreateRotationZ(XMConvertToRadians(0.0f));
-
-	//	// ピッチ(仰角)
-	//	Matrix rotmatx = Matrix::CreateRotationX(XMConvertToRadians(0.0f));
-
-	//	// ヨー(方位角)
-	//	Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians((360.0f / 10.0f) * i) - m_AngleBall);
-
-	//	// 回転行列の合成
-	//	Matrix rotmat = rotmatz * rotmatx * rotmaty;
-
-	//	// 平行移動
-	//	Matrix transmat = Matrix::CreateTranslation(40, 0, 0);
-
-	//	m_worldBall[i] =/* scalemat * */transmat * rotmat;
-
-	//}
-	//float val = (sinf(36.0f) + 1.0f)*50.0f;
-
-	//float cval = (cosf(36.0f) + 1.0f) * 50.0f;
-	//// ロール
-	//Matrix rotmatz = Matrix::CreateRotationZ(XMConvertToRadians(val));
-
-	//// ピッチ(仰角)
-	//Matrix rotmatx = Matrix::CreateRotationX(XMConvertToRadians(cval) + m_AngleBall);
-
-	//// ヨー(方位角)
-	//Matrix rotmaty = Matrix::CreateRotationY(XMConvertToRadians(0.0f));
-
-	//// 回転行列の合成
-	//Matrix rotmat = rotmatz * rotmatx * rotmaty;
-
-	//// 平行移動
-	//Matrix transmat = Matrix::CreateTranslation(0, 0, 0);
-
-	//m_worldBall = scalemat * transmat * rotmat;
+		
 	
-	
+	}
+	else if (kb.S)
+	{
+		// 移動ベクトル
+		Vector3 moveV(0, 0, -0.1f);
+		Matrix rotmat = Matrix::CreateRotationY(tank_y);
+		moveV = Vector3::TransformNormal(moveV, rotmat);
+
+		// 自機の座標を移動
+		tank_pos += moveV;
+
+	/*	m_Camera->SetEyePos(tank_pos);
+
+		m_Camera->SetRefPos(Vector3(0, 0, 100));*/
 
 
+		
+	}
+
+	// 自機のワールド行列を計算
+	{
+		// 回転行列
+		Matrix rotmat = Matrix::CreateRotationY(tank_y);
+		Matrix trans_mat = Matrix::CreateTranslation(tank_pos);
+		tank_world = rotmat * trans_mat;
+
+	}
+
+	m_Camera->SetTargetPos(tank_pos);
+
+	m_Camera->SetTargetAngle(tank_y);
+
+
+	m_Camera->Update();
+
+	m_view = m_Camera->GetViewMatrix();
+
+	m_proj = m_Camera->GetProjectionMatrix();
 }
 
 // Draws the scene.
@@ -329,20 +326,40 @@ void Game::Render()
 	//};
 
 
-	// カメラ設定
-	m_states = std::make_unique<CommonStates>(m_d3dDevice.Get());
-	m_d3dContext->OMSetBlendState(m_states->Opaque(), nullptr, 0xFFFFFFFF);
-	m_d3dContext->OMSetDepthStencilState(m_states->DepthNone(), 0);
-	m_d3dContext->RSSetState(m_states->CullNone());
+	//// カメラ設定
+	//m_states = std::make_unique<CommonStates>(m_d3dDevice.Get());
+	//m_d3dContext->OMSetBlendState(m_states->Opaque(), nullptr, 0xFFFFFFFF);
+	//m_d3dContext->OMSetDepthStencilState(m_states->DepthNone(), 0);
+	//m_d3dContext->RSSetState(m_states->CullNone());
 
+	//// カメラの位置
+	//Vector3 eyepos(0, 0, 5.0f);
+	//// どこをみているのか
+	//Vector3 refpos(0, 0, 0);
+	//// 上方向ベクトル
+	//Vector3 upvec(0, -1, 0);
+	//// ビュー行列を生成
+	//m_view = Matrix::CreateLookAt(eyepos, refpos, upvec);
+
+	//// 垂直方向視野角
+	//float fovY = XMConvertToRadians(60.0f);
+	//// 画面横幅と立幅の比率
+	//float aspect = (float)m_outputWidth / m_outputHeight;
+	//// 手前の表示限界距離
+	//float nearclip = 0.1f;
+	//// 奥の表示限界距離
+	//float farclip = 1000.0f;
 	/*m_view = Matrix::CreateLookAt(Vector3(0.f, 2.f, 50.f),
 		Vector3(0,0,0), Vector3(0,1,0));*/
-	m_proj = Matrix::CreatePerspectiveFieldOfView(XM_PI / 4.f,
-		float(m_backBufferWidth) / float(m_backBufferHeight), 0.1f, 1000.f);
-
+	/*m_proj = Matrix::CreatePerspectiveFieldOfView(XM_PI / 4.f,
+		float(m_backBufferWidth) / float(m_backBufferHeight), 0.1f, 1000.f);*/
+	/*m_proj = Matrix::CreatePerspectiveFieldOfView(
+		fovY,aspect,nearclip,farclip);*/
 	m_effect->SetView(m_view);
 	m_effect->SetProjection(m_proj);
 
+	
+	
 
 
 	//// 線分
@@ -370,10 +387,10 @@ void Game::Render()
 	// 地面を描画
 	m_model->Draw(m_d3dContext.Get(),*m_states,Matrix::Identity,m_view,m_proj);
 
-
+	// ロボの描画
 	m_robo->Draw(m_d3dContext.Get(),
 		*m_states,
-		m_world,
+		tank_world,
 		m_view,
 		m_proj);
 
@@ -417,7 +434,7 @@ void Game::Render()
 
 	//m_batch->End();
 
-
+	
 
     Present();
 }
