@@ -14,8 +14,23 @@
 #include <Model.h>
 #include <Keyboard.h>
 #include "FollowCamera.h"
+#include "Obj3d.h"
 
+enum PLAYER_PARTS {
+	PLAYER_PARTS_HEAD,
+	PLAYER_PARTS_BODY,
+	PLAYER_PARTS_SHOLDERL,
+	PLAYER_PARTS_SHOLDERR,
+	PLAYER_PARTS_LARM,
+	PLAYER_PARTS_RARM,
+	PLAYER_PARTS_WAITER,
+	PLAYER_PARTS_FOOTL,
+	PLAYER_PARTS_FOOTR,
+	PLAYER_PARTS_LEGL,
+	PLAYER_PARTS_LEGR,
 
+	PLAYER_PARTS_NUM
+};
 
 
 // A basic game implementation that creates a D3D11 device and
@@ -41,6 +56,7 @@ public:
 
     // Properties
     void GetDefaultSize( int& width, int& height ) const;
+	static const int PLAYER_ALL_PARTS = 5;
 
 private:
 
@@ -101,10 +117,10 @@ private:
 
 	float m_backBufferWidth, m_backBufferHeight;
 
-	std::unique_ptr<DebugCamera> m_camera;
+	//std::unique_ptr<DebugCamera> m_camera;
 	
 	// エフェクトファクトリー
-	std::unique_ptr<DirectX::EffectFactory> m_factory;
+	//std::unique_ptr<DirectX::EffectFactory> m_factory;
 
 	std::unique_ptr<DirectX::EffectFactory> m_ballfactory;
 
@@ -129,11 +145,34 @@ private:
 
 	std::unique_ptr<DirectX::Model> m_robo;
 
+	/*Obj3d m_objSkydome;*/
+
+	// デバッグカメラ
+	std::unique_ptr<DebugCamera> m_debugCamera;
+	// エフェクトファクトリ
+	std::unique_ptr<DirectX::EffectFactory> m_factory;
+	// モデル
+	Obj3d m_objSkydome;
+	std::unique_ptr<DirectX::Model> m_modelGround;
+	std::unique_ptr<DirectX::Model> m_modelBall;
+
+
+	// 自機オブジェクト
+	std::vector<Obj3d> m_objPlayer;
+
 	// 球のワールド行列
 	DirectX::SimpleMath::Matrix m_worldBall[20];
 
 	// 角度
 	float m_AngleBall;
+
+	// 自機の回転角
+	float tank_angle;
+
+	float angle;
+
+	// 自機のギミックに使う角度
+	float m_sinAngle;
 
 	float m_num[20];
 
@@ -142,18 +181,25 @@ private:
 	// キーボード
 	std::unique_ptr<DirectX::Keyboard> m_keyboard;
 
-	float tank_y;
-
-	// 自機の回転角
-	float tank_angle;
-
 	// 自機の座標側の移動
 	DirectX::SimpleMath::Vector3 tank_pos;
-
+	DirectX::SimpleMath::Vector3 pos;
 	// 自機のワールド行列
 	DirectX::SimpleMath::Matrix tank_world;
 
+	// 自機のワールド行列
+	DirectX::SimpleMath::Matrix tank_world2;
+
+	// カメラ
 	std::unique_ptr<FollowCamera> m_Camera;
+
+	float sinAngle;
+
+	float gravity ;
+
+	float jump;
+
+	static float c;
 
 
 };
